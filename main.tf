@@ -22,7 +22,13 @@ data "template_cloudinit_config" "config" {
   # Main cloud-config configuration file.
   part {
     content_type = "text/cloud-config"
-    content      = "packages: ['httpie']"
+    content      = <<-EOF
+      packages: ['default-jre', 'screen']
+      runcmd:
+        - [wget, "https://github.com/Anuken/Mindustry/releases/download/v146/server-release.jar"]
+        - [scree, "-S", "mindustry-screen"]
+        - [java, "-jar", "server-release.jar", "host"]
+    EOF
   }
 }
 
@@ -123,7 +129,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
     azurerm_network_interface.main.id,
     azurerm_network_interface.internal.id,
   ]
-  custom_data = base64encode(local.custom_data)
+  #custom_data = base64encode(local.custom_data)
+  custom_data = data.template_cloudinit_config.config.rendered
 
   admin_ssh_key {
     username   = "panevoadmin"
